@@ -1,0 +1,87 @@
+My UCFBC Final-Project
+
+Classifying Heart Disease with Machine Learning
+
+I have been tasked reviewing 3 years of data and identifying the best lending markets based on various borrowing criteria (ex. state, zip code, loan purpose).
+
+Plan: My plan is to create a machine learning model that will determine The "goal" field refers to the presence of heart disease in the patient depending on different health conditions
+1.Age
+2. Weight
+3.
+
+Main Data Source: Lending Club Statistics site: https://www.lendingclub.com/info/download-data.action Overall Loan Data 2016 -2018 Declined Loan Data 2016-2018 Lending Club Data Dictionary
+
+Possible Methods: Python Pandas Tableau
+
+Model Selection: 
+
+I decided to learn how to use the Pandas library since I had heard it makes the import and manipulation of data sets much simpler, and try both the Nearest Neighbors and Decision Trees classifiers from scikit-learn.
+#import the Cleveland heart patient data file using pandas, creating a header row
+#since file doesn't have column names
+import pandas as pnd
+header_row = ['age','sex','pain','BP','chol','fbs','ecg','maxhr','eiang','eist','slope','vessels','thal','diagnosis']
+heart = pnd.read_csv('processed.cleveland.data', names=header_row)
+Here is where I converted 
+#import and modify VA dataset for testing
+heart_va = pnd.read_csv('processed.va.data', names=header_row)
+has_hd_check = heart_va['diagnosis'] > 0
+heart_va['diag_int'] = has_hd_check.astype(int)
+
+from sklearn import tree
+clf2 = tree.DecisionTreeClassifier()
+#train the classifier on partial dataset
+heart_train, heart_test, goal_train, goal_test = cross_validation.train_test_split(heart.loc[:,'age':'thal'], heart.loc[:,'diag_int'], test_size=0.33, random_state=0)
+clf2.fit(heart_train, goal_train )
+heart_test_results = clf2.predict(heart_test)
+ 
+#put the results into a dataframe and determine how many were classified correctly
+heart_test_results = pnd.DataFrame(heart_test_results, columns=['predict'])
+goal_test_df = pnd.DataFrame(goal_test, columns=['actual'])
+heart_test_results['correct'] = heart_test_results['predict'] == goal_test_df['actual']
+ 
+#print results of decision tree classification test
+print("")
+print("Decision Tree Result 1:")
+print(heart_test_results['correct'].value_counts())
+print(clf2.score(heart_test, goal_test))
+ 
+#try the scikit-learn cross validation function
+print("Decision Tree Cross-Validation:")
+scores = cross_validation.cross_val_score(clf2, heart.loc[:,'age':'thal'], heart.loc[:,'diag_int'], cv=5)
+print(scores)
+ 
+#test classifier with other data (note: many values missing in these files)
+print("Trained Decision Tree Applied to VA Data:")
+heart_va_results = clf2.predict(heart_va.loc[:,'age':'thal'])
+print(clf2.score(heart_va.loc[:,'age':'thal'], heart_va.loc[:,'diag_int']))
+print("Trained Decision Tree Applied to Hungarian Data:")
+heart_hu_results = clf2.predict(heart_hu.loc[:,'age':'thal'])
+print(clf2.score(heart_hu.loc[:,'age':'thal'], heart_hu.loc[:,'diag_int']))
+
+Interestingly, the results these classifiers got weren’t much better than my “homemade” classifier above! Here is the output from my code:
+Nearest Neighbors (5) Result 1:
+True 64
+False 36
+dtype: int64
+0.64
+Nearest Neighbors (5) Cross-Validation:
+[ 0.62295082 0.67213115 0.63934426 0.65 0.7 ]
+Trained Nearest Neighbors (5) Applied to VA Data:
+0.615
+Trained Nearest Neighbors (5) Applied to Hungarian Data:
+0.421768707483
+Decision Tree Result 1:
+True 75
+False 25
+dtype: int64
+0.75
+Decision Tree Cross-Validation:
+[ 0.7704918 0.75409836 0.73770492 0.8 0.76666667]
+Trained Decision Tree Applied to VA Data:
+0.65
+Trained Decision Tree Applied to Hungarian Data:
+0.683673469388
+The Nearest Neighbors classifier was able to classify 62-70% of the training data correctly, and only 61% of the VA data.
+The Decision Tree classifier was able to classify 73-80% of the training data correctly, and only 65% of the VA data.
+My model in Excel classified 85% of the training data correctly and 77% of the VA data (with a change in the “points” system knowing that the VA file had fewer available columns). In this case, a “human touch” appeared to make a difference!
+
